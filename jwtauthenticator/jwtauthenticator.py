@@ -58,23 +58,24 @@ class JSONWebTokenLoginHandler(BaseHandler):
         self.redirect(_url)
 
     @staticmethod
-    def verify_jwt_with_claims(token, signing_certificate, audience):
+    def verify_jwt_with_claims(token, signing_certificate, audience, verify_signature=False):
         # If no audience is supplied then assume we're not verifying the audience field.
         if audience == "":
             opts = {"verify_aud": False}
         else:
             opts = {}
+        opts['verify_signature'] = verify_signature
         with open(signing_certificate, 'r') as rsa_public_key_file:
             return jwt.decode(token, rsa_public_key_file.read(), audience=audience, options=opts)
 
     @staticmethod
-    def verify_jwt_using_secret(json_web_token, secret, audience):
+    def verify_jwt_using_secret(json_web_token, secret, audience, verify_signature=False):
         # If no audience is supplied then assume we're not verifying the audience field.
         if audience == "":
             opts = {"verify_aud": False}
         else:
             opts = {}
-        
+        opts['verify_signature'] = verify_signature
         return jwt.decode(json_web_token, secret, algorithms=list(jwt.ALGORITHMS.SUPPORTED), audience=audience, options=opts)
 
     @staticmethod
@@ -122,7 +123,7 @@ class JSONWebTokenAuthenticator(Authenticator):
         default_value='Authorization',
         config=True,
         help="""HTTP header to inspect for the authenticated JSON Web Token.""")
-        
+
     header_is_authorization = Bool(
         default_value=True,
         config=True,
